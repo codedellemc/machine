@@ -41,7 +41,7 @@ Alpha state!
   docker-machine ssh k8 "curl -sSL https://dl.bintray.com/emccode/rexray/install | sh -s staged"
   ```
 
-3. Create a REX-Ray configuration file. *There are two fields that are cirtical to change!*  Make sure to present a valid path by replacing `user` under the `volumePath` parameter. Also make sure to update the `localMachineOrId` with the name of the docker-machine, in this case we deployed a machine with `k8` so no change was necessary.
+3. Create a REX-Ray configuration file. *There are two fields that are cirtical to change!*  Make sure to present a valid path by replacing `user` under the `volumePath` parameter. Also make sure to update the `localMachineOrId` with the name of the docker-machine, in this case we deployed a machine with `k8` so no change was necessary. Note: See REX-Ray storage [configuration](http://emccode.github.io/rexray/user-guide/storage-providers/) documentation for information on configurin other storage platforms. This would be useful to leverage any of REX-Ray's storage drivers in use cases outside of this Docker Machine demo
 
    ```bash   
     docker-machine ssh k8 "sudo mkdir -p /etc/rexray && sudo tee -a /etc/rexray/config.yml << EOF
@@ -94,7 +94,7 @@ Alpha state!
         --allow-privileged=true --v=4
     ```
 
-4. Launch a container that has the `kubectl` tool running. This can be done remotely as well.
+4. Launch a container that has the compatible version of `kubectl`.
 
     ```bash
     docker run -ti --rm --net=host -v /var/lib/rexray:/var/lib/rexray emccode/hyperkube-amd64:v1.2.0-alpha.8 /bin/bash
@@ -128,7 +128,7 @@ This first method assumes that you have created volumes outside of Kubernetes. T
     docker-machine ssh k8 sudo rexray volume create --volumename=test123 --size=1
     ```
 
-2. Launch a container that has the `kubectl` tool running.
+2. Launch a container to run `kubectl`.
 
     ```bash
     docker run -ti --rm --net=host -v /var/lib/rexray:/var/lib/rexray emccode/hyperkube-amd64:v1.2.0-alpha.8 /bin/bash
@@ -151,7 +151,7 @@ This first method assumes that you have created volumes outside of Kubernetes. T
 ### Persistent Volume Claims
 The second method involves steps to enable dynamic `Persistent Volumes` through `Persistent Volume Claims`.
 
-1. Launch a container that has the `kubectl` tool running.
+1. Launch a container to run `kubectl`.
 
     ```bash
     docker run -ti --rm --net=host -v /var/lib/rexray:/var/lib/rexray emccode/hyperkube-amd64:v1.2.0-alpha.8 /bin/bash
