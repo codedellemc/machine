@@ -1,0 +1,15 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: mypod2
+spec:
+  containers:
+    - name: mydb
+      image: postgres
+      volumeMounts:
+      - mountPath: "/var/lib/postgresql/data"
+        name: postgres-data
+  volumes:
+    - name: postgres-data
+      persistentVolumeClaim:
+        claimName: myclaim

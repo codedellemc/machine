@@ -6,13 +6,13 @@ and enjoy the demo.
 
 The external volume capability here focuses on VirtualBox and is provided
 through [REX-Ray](https://github.com/emccode/rexray). Other drivers from REX-Ray
-should be configured in a typical Kubernetes fashion. This is currently an
-Alpha capability!
+should be configured in a typical Kubernetes fashion. This is currently in
+Alpha state!
 
 ## Requirements
 
-* [VirtualBox][5] 5.0.10+
-* [Docker Toolbox][6] 1.10+
+* VirtualBox 5.0.10+
+* Docker Toolbox 1.10+
 * Internet connection
 
 ## Pre-requisites
@@ -41,7 +41,9 @@ Alpha capability!
   docker-machine ssh k8 "curl -sSL https://dl.bintray.com/emccode/rexray/install | sh -s staged"
   ```
 
-3. Create a REX-Ray configuration file. There is no need to install REX-Ray at this point since it is embedded in Kubernetes, unless you want it for troubleshooting purposes. Make sure to present a valid path by replacing `user` under the `volumePath` parameter.
+3. Create a REX-Ray configuration file. There is no need to install REX-Ray at this point since it is embedded in Kubernetes, unless you want it for troubleshooting purposes.
+
+    *There are two fields that are cirtical to change!*  Make sure to present a valid path by replacing `user` under the `volumePath` parameter. Also make sure to update the `localMachineOrId` with the name of the docker-machine, in this case it was `k8`.
 
    ```bash   
     docker-machine ssh k8 "sudo mkdir -p /etc/rexray && sudo tee -a /etc/rexray/config.yml << EOF
@@ -151,17 +153,24 @@ This first method assumes that you have created volumes outside of Kubernetes. T
 ### Persistent Volume Claims
 The second method involves steps to enable dynamic `Persistent Volumes` through `Persistent Volume Claims`.
 
-1. First we need to create a claim. This is captured in the `myclaim.yml` file
+1. Launch a container that has the `kubectl` tool running.
+
+    ```bash
+    docker run -ti --rm --net=host -v /var/lib/rexray:/var/lib/rexray emccode/hyperkube-amd64:v1.2.0-alpha.8 /bin/bash
+    ```
+
+2. First we need to create a claim. This is captured in the `myclaim.yml` file
 and includes a storage class attribute where we defined `volume.alpha.kubernetes.io/storage-class: kubernetes`.
 The `kubernetes` part of this definition is where we can define the different types of storage that may
 be available. This relates to `modules` in REX-Ray.
 
-Create the claim with the following command.
+    Create the claim with the following command.
+
     ```bash
     ./kubectl create -f myclaim.yml
     ```
 
-2. Check on the status of the claim. It should say `Bound` with an associated
+3. Check on the status of the claim. It should say `Bound` with an associated
 `Volume` parameter populated with a dynamic name. This claim is now ready to be
 used for a pod.
 
@@ -176,7 +185,7 @@ used for a pod.
     Access Modes:	RWO
     ```
 
-3. You can step it a step further and look at the volume that was created.
+4. You can step it a step further and look at the volume that was created.
 Notice how the information specific to the storage platform is automatically
 populated.
 
@@ -225,27 +234,27 @@ download and become ready.
 3. Optionally you can verify the volume has mounted and data exists. Find the
 volume associated as defined below by `rexray-lsc0z`.
 
-```bash
-./kubectl describe pvc myclaim
-Name:		myclaim
-Namespace:	default
-Status:		Bound
-Volume:		rexray-lsc0z
-```
+    ```bash
+    ./kubectl describe pvc myclaim
+    Name:		myclaim
+    Namespace:	default
+    Status:		Bound
+    Volume:		rexray-lsc0z
+    ```
 
 4. Look at the existing mounts and look for that volume name in the mounts. There
 should be two mounts. The first listed is the direct mount from REX-Ray and the second
 is a private mount for the container.
 
-```bash
-(exit from container)
-docker-machine ssh k8 cat /proc/mounts | grep rexray-lsc0z
-...
-/dev/sdp /var/lib/rexray/volumes/kubernetes-dynamic-rexray-lsc0z ext4 rw,relatime,data=ordered 0 0
-/dev/sdp /var/lib/kubelet/pods/13debc7a-e1a5-11e5-81ca-32cc5a798e6a/volumes/kubernetes.io~rexray/kubernetes-dynamic-rexray-lsc0z ext4 rw,relatime,data=ordered 0 0
-```
+    ```bash
+    (exit from container)
+    docker-machine ssh k8 cat /proc/mounts | grep rexray-lsc0z
+    ...
+    /dev/sdp /var/lib/rexray/volumes/kubernetes-dynamic-rexray-lsc0z ext4 rw,relatime,data=ordered 0 0
+    /dev/sdp /var/lib/kubelet/pods/13debc7a-e1a5-11e5-81ca-32cc5a798e6a/volumes/kubernetes.io~rexray/kubernetes-dynamic-rexray-lsc0z ext4 rw,relatime,data=ordered 0 0
+    ```
 
 
-### Done!
+# Done!
 
 That's it!

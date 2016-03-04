@@ -1,0 +1,14 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: abc456
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  rexray:
+    VolumeName: "abc456"
+    Module: "kubernetes"
+    VolumeID:
+    StorageDriver:

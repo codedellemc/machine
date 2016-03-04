@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod1
+spec:
+  containers:
+  - image: gcr.io/google_containers/test-webserver
+    name: test-container
+    volumeMounts:
+    - mountPath: /test-pd
+      name: test123
+  volumes:
+  - name: test123
+    rexray:
+      VolumeName: test123
+      Module: kubernetes
+      StorageDriver:
+      VolumeID:
