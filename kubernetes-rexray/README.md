@@ -38,7 +38,7 @@ Alpha state!
 2. (optional) This step is required if you need to create new volumes manually to attach to pods. It is not required if you are going to leverage Persistent Volume Claims or if you already have volumes created.
 
   ```bash
-  docker-machine ssh k8 "curl -sSL https://dl.bintray.com/emccode/rexray/install | sh -s staged"
+  docker-machine ssh k8 "curl -sSL https://dl.bintray.com/emccode/rexray/install | sh -s stable"
   ```
 
 3. Create a REX-Ray configuration file. *There are two fields that are cirtical to change!*  Make sure to present a valid path by replacing `user` under the `volumePath` parameter. Also make sure to update the `localMachineOrId` with the name of the docker-machine, in this case we deployed a machine with `k8` so no change was necessary. Note: See REX-Ray storage [configuration](http://emccode.github.io/rexray/user-guide/storage-providers/) documentation for information on configurin other storage platforms. This would be useful to leverage any of REX-Ray's storage drivers in use cases outside of this Docker Machine demo.
