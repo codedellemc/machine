@@ -13,12 +13,12 @@ This repo contains all the necessary instructions, scripts, and documentation to
 ## Pre-requisites
 
 1. Prepare [Vagrant setup of RackHD](https://github.com/RackHD/RackHD/tree/master/example) and set the head to commit `d3e545a1e`.
-```
-$ git clone https://github.com/RackHD/RackHD
-$ cd RackHD
-$ git checkout d3e545a1e
-$ cd example
-```
+   ```
+   $ git clone https://github.com/RackHD/RackHD
+   $ cd RackHD
+   $ git checkout d3e545a1e
+   $ cd example
+   ```
 
 2. (Optional) If you are going to be memory constrained on your laptop, edit the `Vagrantfile` and set the Memory to 2048 with `v.memory = 2048`. 
 
@@ -30,7 +30,7 @@ $ cd example
 4. Modify the `bin/monorail_rack` shell script to give the PXE machines a secondary NIC set to NAT and 1024MB of RAM. The 2nd NIC is required to be on NAT so it has internet access to be able to install Docker. The first NIC remains on the closed/private network for RackHD internal communication.
   * Set the aforementioned manually after deployment or modify the script
   * Change the `DEPLOY PXE CLIENTS` section to match the following or copy [monorail_rack.sh](https://github.com/emccode/machine/blob/master/rackhd/monorail_rack.sh)
-```bash
+   ```bash
 ######################
 # DEPLOY PXE CLIENTS #
 ######################
@@ -57,18 +57,18 @@ if [ $PXE_COUNT ]
         fi
       done
 fi
-```
+   ```
 
 5. Kick off the script. `bin/monorail_rack`. This should kick off the monorail services and have it up and running.
 
 6. Open another terminal tab/window and SSH into the monorail server `vagrant ssh`
 
 7. Unpack and Install a new CentOS ISO
-```
+   ```
 $ cd /tmp
 $ wget http://mirrors.mit.edu/centos/7/isos/x86_64/CentOS-7-x86_64-DVD-1511.iso
 $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.iso /var/mirrors --link=/home/vagrant/src
-```
+   ```
 
 8. Edit the CentOS KickStart script `/home/vagrant/src/on-http/data/templates/centos-ks`. Copy and paste [centos-ks](https://github.com/emccode/machine/blob/master/rackhd/centos-ks) or make the following modifications:
     * comment out `graphical` and uncomment `text` to make the installed completely text based
@@ -77,7 +77,7 @@ $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.is
     * Add new users to the Sudoers file by adding `echo "<%=user.name%> ALL=(ALL)      NOPASSWD:ALL" >> /etc/sudoers` under the For Each User loop in the Post installation process. ([line 89](https://github.com/emccode/machine/blob/master/rackhd/centos-ks#L89))
 
 9. Open another terminal tab/window and create a new file called `centos_workflow.json`. Copy and paste the below or copy from [centos_workflow.json](https://github.com/emccode/machine/blob/master/rackhd/centos_workflow.json). Take note of the user and password fields. Change as necessary.
-```
+   ```
 {
   "friendlyName": "VirtualBox Default Install CentOS",
   "injectableName": "Graph.DefaultVirtualBox.InstallCentOS",
@@ -111,10 +111,10 @@ $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.is
     }
   }]
 }
-```
+   ```
 
 10. Create a new file called `virtualbox_sku_centos.json`. Copy and paste the below or copy from [virtualbox_sku_centos.json](https://github.com/emccode/machine/blob/master/rackhd/virtualbox_sku_centos.json)
-```
+   ```
 {
     "name": "Noop OBM settings for VirtualBox nodes",
     "discoveryGraphName": "Graph.DefaultVirtualBox.InstallCentOS",
@@ -126,39 +126,39 @@ $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.is
         }
     ]
 }
-```
+   ```
 
 11. Upload the new `.json` files to the RackHD server.
-```
+   ```
 $ curl -H "Content-Type: application/json" -X POST --data @centos_workflow.json http://localhost:9090/api/1.1/workflows
 $ curl -H "Content-Type: application/json" -X POST --data @virtualbox_sku_centos.json http://localhost:9090/api/1.1/skus
-```
+   ```
 
 12. At this point, CentOS will automatically begin installation after it has PXE booted and added to RackHD's inventory. Open up VirtualBox and power on one of the machines or power on using the command line with `VBoxManage controlvm poweron pxe-1`. Wait and revel in the majesty that is automation.
 
 13. Install Docker Client, Docker Machine and the RackHD Driver. Go back to the 2nd terminal that is SSH'd into the vagrant RackHD/monorail. The following pieces require root permission. In this version, all Docker Machine related commands require execution to be done on the RackHD server where [on-http](https://github.com/RackHD/on-http/) is being hosted because RackHD is only able to provide IP addresses for nodes that acquired addresses from RackHD's DHCP server. There is an [in-band management](https://github.com/RackHD/specs/blob/master/inband_management.md) spec for adding the capability to manage hosts via SSH outside of RackHD (or via the 2nd NIC) in a future release.
-```
+   ```
 $ sudo su
 # curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 > /usr/local/bin/docker-machine && chmod +x /usr/local/bin/docker
 # curl -L https://github.com/docker/machine/releases/download/v0.6.0/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && chmod +x /usr/local/bin/docker-machine
 # curl -L https://github.com/emccode/docker-machine-rackhd/releases/download/v0.0.1/docker-machine-driver-rackhd.`uname -s`-`uname -m` > /usr/local/bin/docker-machine-driver-rackhd && chmod +x /usr/local/bin/docker-machine-driver-rackhd
-```
+   ```
 
 14. Retrieve the node ID from the PXE server(s) that was powered on in step 11. Open up the web browser and go to `http://localhost:9090/ui` to view the Node ID or go to the 3rd terminal and issue the following:
-```
+   ```
 $ curl http://localhost:9090/api/1.1/nodes | python -m json.tool
-```
+   ```
 Look for a "compute" node and retrieve the `ID` in a format similar to `56e2436a07366d7a09efc5c8`. 
 
 15. Use Docker Machine to now manage this node and install Docker. Go to the 2nd terminal window that is SSH'd into RackHD Vagrant image
 View all the RackHD parameters using the `--help` flag
-```
+   ```
 # docker-machine create --driver rackhd --help
-```
+   ```
 Create the new host by specifying the `--rackhd-node-id` that was gathered from querying the Nodes and specify `--rackhd-ssh-user` & `--rackhd-ssh-password` that was set in [centos_workflow.json](https://github.com/emccode/machine/blob/master/rackhd/centos_workflow.json). Lastly, provide a name for the host. 
-```
+   ```
 # docker-machine create --driver=rackhd --rackhd-node-id 56e2436a07366d7a09efc5c8 --rackhd-ssh-user rackhd --rackhd-ssh-password rackhd123 lodidodi
-```
+   ```
 
 ---
 
