@@ -1,0 +1,33 @@
+{
+	"friendlyName": "VirtualBox Default Install CentOS",
+	"injectableName": "Graph.DefaultVirtualBox.InstallCentOS",
+	"tasks": [{
+		"label": "create-noop-obm-settings",
+		"taskDefinition": {
+			"friendlyName": "Create VirtualBox OBM settings",
+			"injectableName": "Task.Obm.Vbox.CreateSettings",
+			"implementsTask": "Task.Base.Obm.CreateSettings",
+			"options": {
+				"service": "noop-obm-service",
+				"config": {}
+			},
+			"properties": {
+				"obm": {
+					"type": "virtualbox"
+				}
+			}
+		}
+	}, {
+		"label": "install-centos",
+		"taskName": "Task.Os.Install.CentOS",
+		"options": {
+			"repo": "{{api.server}}/Centos/7.0",
+			"rootPassword": "root",
+			"users": [{
+				"name": "rackhd",
+				"password": "rackhd123",
+				"uid": 1010
+			}]
+		}
+	}]
+}
