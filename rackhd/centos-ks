@@ -1,0 +1,171 @@
+install
+text
+#graphical
+unsupported_hardware
+url --url=<%=repo%>
+# eula --agreed
+lang en_US.UTF-8
+keyboard 'us'
+timezone America/Louisville --isUtc
+firewall --enabled --http --ssh --port=2376:tcp --port=3376:tcp
+selinux --disabled
+<% if (version === "6.5") { %>
+  bootloader --location=mbr --driveorder=<%=installDisk%> --append="crashkernel=auth rhgb"
+<% } else { %>
+  bootloader --location=mbr --driveorder=<%=installDisk%> --boot-drive=<%=installDisk%> --append="crashkernel=auth rhgb"
+<% } %>
+services --enabled=NetworkManager,sshd
+network --device=<%=macaddress%> --noipv6 --activate
+network --device=enp0s8 --noipv6 --activate
+
+#enable syslog
+logging --host=<%=server%> --level=info
+
+authconfig --enableshadow --passalgo=sha512 --enablefingerprint
+
+#Set the root account
+rootpw --iscrypted <%=rootEncryptedPassword%>
+
+#create all users
+<% users.forEach(function(user) { %>
+    user --name=<%=user.name%> --uid=<%=user.uid%> --iscrypted --password <%=user.encryptedPassword%>
+<% }) %>
+
+# Disk Partitioning
+zerombr
+clearpart --all --drives=<%=installDisk%>
+autopart
+# END of Disk Partitioning
+
+# Make sure we reboot into the new system when we are finished
+reboot
+
+# Package Selection
+%packages --nobase --excludedocs
+@core
+-*firmware
+-iscsi*
+-fcoe*
+-b43-openfwwf
+kernel-firmware
+-efibootmgr
+wget
+sudo
+perl
+libselinux-python
+net-tools
+<% if( typeof kvm !== 'undefined' ) { %>
+    <% if (version === "6.5") { %>
+        kvm
+        virt-manager
+        libvirt
+        libvirt-python
+        python-virtinst
+    <% } else { %>
+        @virtualization-hypervisor
+        @virtualization-client
+        @virtualization-platform
+        @virtualization-tools
+    <% } %>
+<% } %>
+%end
+
+%pre
+%end
+
+%post --log=/root/install-post.log
+(
+# PLACE YOUR POST DIRECTIVES HERE
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+export PATH
+
+# copying of SSH key
+<% if (typeof rootSshKey !== 'undefined') { %>
+    mkdir /root/.ssh
+    echo <%=rootSshKey%> > /root/.ssh/authorized_keys
+    chown -R root:root /root/.ssh
+<% } %>
+<% users.forEach(function(user) { %>
+    echo "<%=user.name%> ALL=(ALL)      NOPASSWD:ALL" >> /etc/sudoers
+    <% if (typeof user.sshKey !== 'undefined') { %>
+        mkdir /home/<%=user.name%>/.ssh
+        echo <%=user.sshKey%> > /home/<%=user.name%>/.ssh/authorized_keys
+        chown -R <%=user.name%>:<%=user.name%> /home/<%=user.name%>/.ssh
+    <% } %>
+<% }) %>
+
+#set hostname
+echo <%=hostname%> > /etc/hostname
+echo -e "NETWORKING=yes\nHOSTNAME=<%=hostname%>.<%=domain%>" > /etc/sysconfig/network
+
+# Setup static network configuration
+<% if( undefined !== networkDevices ) { %>
+  <% ipv6 = 0 %>
+  <% networkDevices.forEach(function(n) { %>
+    <% if( undefined != n.ipv4 ) { %>
+      <% if( undefined != n.ipv4.vlanId ) { %>
+        <% n.ipv4.vlanId.forEach(function(vid) { %>
+          echo "Configuring vlan <%=vid%> on <%=n.device%>"
+          echo "DEVICE=<%=n.device%>.<%=vid%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "ONBOOT=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "IPADDR=<%=n.ipv4.ipAddr%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "NETMASK=<%=n.ipv4.netmask%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "GATEWAY=<%=n.ipv4.gateway%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "VLAN=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+        <% }); %>
+      <% } else { %>
+        echo "Configuring device <%=n.device%>"
+        echo "DEVICE=<%=n.device%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "ONBOOT=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "IPADDR=<%=n.ipv4.ipAddr%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "NETMASK=<%=n.ipv4.netmask%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "GATEWAY=<%=n.ipv4.gateway%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+      <% } %>
+    <% } %>
+    <% if( undefined != n.ipv6 ) { %>
+      <% if( undefined != n.ipv6.vlanId ) { %>
+        <% n.ipv6.vlanId.forEach(function(vid) { %>
+          echo "Configuring vlan <%=vid%> on <%=n.device%>"
+          echo "DEVICE=<%=n.device%>.<%=vid%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "ONBOOT=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "IPV6INIT=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "IPV6ADDR=<%=n.ipv6.ipAddr%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "IPV6_DEFAULTGW=<%=n.ipv6.gateway%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          echo "VLAN=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>.<%=vid%>
+          <% ipv6 = 1 %>
+        <% }); %>
+      <% } else { %>
+        echo "Configuring device <%=n.device%>"
+        echo "DEVICE=<%=n.device%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "BOOTPROTO=none" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "ONBOOT=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "IPV6INIT=yes" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "IPV6ADDR=<%=n.ipv6.ipAddr%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        echo "IPV6_DEFAULTGW=<%=n.ipv6.gateway%>" >> /etc/sysconfig/network-scripts/ifcfg-<%=n.device%>
+        <% ipv6 = 1 %>
+      <% } %>
+    <% } %>
+  <% }); %>
+  <% if( ipv6 ) { %>
+    grep -q -F 'NETWORKING_IPV6=yes' /etc/sysconfig/network || echo "NETWORKING_IPV6=yes" >> /etc/sysconfig/network
+  <% } %>
+<% } %>
+
+# Setup DNS servers
+<% if( undefined !== dnsServers ) { %>
+  echo "search <%=domain%>" > /etc/resolv.conf
+  <% dnsServers.forEach(function(dns) { %>
+    echo "nameserver <%=dns%>" >> /etc/resolv.conf
+  <% }) %>
+  chattr +i /etc/resolv.conf
+<% } %>
+
+#signify ORA the installation completed
+/usr/bin/wget --spider http://<%=server%>:<%=port%>/api/common/templates/renasar-ansible.pub
+
+) 2>&1 >/root/install-post-sh.log
+EOF
+%end
