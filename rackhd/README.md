@@ -81,35 +81,45 @@ $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.is
 {
   "friendlyName": "VirtualBox Default Install CentOS",
   "injectableName": "Graph.DefaultVirtualBox.InstallCentOS",
-  "tasks": [{
-    "label": "create-noop-obm-settings",
-    "taskDefinition": {
-      "friendlyName": "Create VirtualBox OBM settings",
-      "injectableName": "Task.Obm.Vbox.CreateSettings",
-      "implementsTask": "Task.Base.Obm.CreateSettings",
-      "options": {
-        "service": "noop-obm-service",
-        "config": {}
+  "options": {
+    "defaults": {
+      "version": null,
+      "repo": "{{api.server}}/Centos/7.0",
+			"rootPassword": "root",
+			"users": [{
+				"name": "rackhd",
+				"password": "rackhd123",
+				"uid": 1010
+			}]
       },
-      "properties": {
-        "obm": {
-          "type": "virtualbox"
-        }
+    "install-centos": {
+      "schedulerOverrides": {
+        "timeout": 3600000
       }
     }
-  }, {
-    "label": "install-centos",
-    "taskName": "Task.Os.Install.CentOS",
-    "options": {
-      "repo": "{{api.server}}/Centos/7.0",
-      "rootPassword": "root",
-      "users": [{
-        "name": "rackhd",
-        "password": "rackhd123",
-        "uid": 1010
-      }]
+  },
+  "tasks": [
+    {
+      "label": "create-noop-obm-settings",
+      "taskDefinition": {
+        "friendlyName": "Create VirtualBox No-Op OBM settings",
+        "injectableName": "Task.Obm.Vbox.Noop.CreateSettings",
+        "implementsTask": "Task.Base.Obm.CreateSettings",
+        "options": {
+        "service": "noop-obm-service",
+        "config": {}
+        },
+        "properties": {
+        "obm": {
+            "type": "virtualbox"
+        }
+      }}
+    },
+    {
+      "label": "install-centos",
+      "taskName": "Task.Os.Install.CentOS"
     }
-  }]
+  ]
 }
    ```
 
@@ -130,7 +140,7 @@ $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.is
 
 11. Upload the new `.json` files to the RackHD server.
    ```
-$ curl -H "Content-Type: application/json" -X POST --data @centos_workflow.json http://localhost:9090/api/1.1/workflows
+$ curl -H "Content-Type: application/json" -X PUT --data @centos_workflow.json http://localhost:9090/api/1.1/workflows
 $ curl -H "Content-Type: application/json" -X POST --data @virtualbox_sku_centos.json http://localhost:9090/api/1.1/skus
    ```
 
@@ -139,7 +149,7 @@ $ curl -H "Content-Type: application/json" -X POST --data @virtualbox_sku_centos
 13. Install Docker Client, Docker Machine and the RackHD Driver. Go back to the 2nd terminal that is SSH'd into the vagrant RackHD/monorail. The following pieces require root permission. In this version, all Docker Machine related commands require execution to be done on the RackHD server where [on-http](https://github.com/RackHD/on-http/) is being hosted because RackHD is only able to provide IP addresses for nodes that acquired addresses from RackHD's DHCP server. There is an [in-band management](https://github.com/RackHD/specs/blob/master/inband_management.md) spec for adding the capability to manage hosts via SSH outside of RackHD (or via the 2nd NIC) in a future release.
    ```
 $ sudo su
-# curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 > /usr/local/bin/docker-machine && chmod +x /usr/local/bin/docker
+# curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 > /usr/local/bin/docker && chmod +x /usr/local/bin/docker
 # curl -L https://github.com/docker/machine/releases/download/v0.6.0/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && chmod +x /usr/local/bin/docker-machine
 # curl -L https://github.com/emccode/docker-machine-rackhd/releases/download/v0.0.1/docker-machine-driver-rackhd.`uname -s`-`uname -m` > /usr/local/bin/docker-machine-driver-rackhd && chmod +x /usr/local/bin/docker-machine-driver-rackhd
    ```
