@@ -3,7 +3,8 @@
   "injectableName": "Graph.DefaultVirtualBox.InstallCentOS",
   "options": {
     "defaults": {
-      "version": null,
+      "version": "7",
+      "dnsServers": ["8.8.8.8", "8.8.4.4"],
       "repo": "{{api.server}}/Centos/7.0",
 			"rootPassword": "root",
 			"users": [{

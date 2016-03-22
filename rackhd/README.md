@@ -83,14 +83,15 @@ $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.is
   "injectableName": "Graph.DefaultVirtualBox.InstallCentOS",
   "options": {
     "defaults": {
-      "version": null,
+      "version": "7",
+      "dnsServers": ["8.8.8.8", "8.8.4.4"],
       "repo": "{{api.server}}/Centos/7.0",
-			"rootPassword": "root",
-			"users": [{
-				"name": "rackhd",
-				"password": "rackhd123",
-				"uid": 1010
-			}]
+      "rootPassword": "root",
+      "users": [{
+        "name": "rackhd",
+        "password": "rackhd123",
+        "uid": 1010
+      }]
       },
     "install-centos": {
       "schedulerOverrides": {
