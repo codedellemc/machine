@@ -118,7 +118,10 @@ $ sudo python ~/src/on-http/data/templates/setup_iso.py /tmp/CentOS-7-x86_64*.is
     },
     {
       "label": "install-centos",
-      "taskName": "Task.Os.Install.CentOS"
+      "taskName": "Task.Os.Install.CentOS",
+      "waitOn": {
+        "create-noop-obm-settings": "succeeded"
+      }
     }
   ]
 }

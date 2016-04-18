@@ -4,15 +4,20 @@
   "options": {
     "defaults": {
       "version": "7",
-      "dnsServers": ["8.8.8.8", "8.8.4.4"],
+      "dnsServers": [
+        "8.8.8.8",
+        "8.8.4.4"
+      ],
       "repo": "{{api.server}}/Centos/7.0",
-			"rootPassword": "root",
-			"users": [{
-				"name": "rackhd",
-				"password": "rackhd123",
-				"uid": 1010
-			}]
-      },
+      "rootPassword": "root",
+      "users": [
+        {
+          "name": "rackhd",
+          "password": "rackhd123",
+          "uid": 1010
+        }
+      ]
+    },
     "install-centos": {
       "schedulerOverrides": {
         "timeout": 3600000
@@ -21,24 +26,28 @@
   },
   "tasks": [
     {
+      "label": "install-centos",
+      "taskName": "Task.Os.Install.CentOS",
+      "waitOn": {
+        "create-noop-obm-settings": "succeeded"
+      }
+    },
+    {
       "label": "create-noop-obm-settings",
       "taskDefinition": {
         "friendlyName": "Create VirtualBox No-Op OBM settings",
         "injectableName": "Task.Obm.Vbox.Noop.CreateSettings",
         "implementsTask": "Task.Base.Obm.CreateSettings",
         "options": {
-        "service": "noop-obm-service",
-        "config": {}
+          "service": "noop-obm-service",
+          "config": {}
         },
         "properties": {
-        "obm": {
+          "obm": {
             "type": "virtualbox"
+          }
         }
-      }}
-    },
-    {
-      "label": "install-centos",
-      "taskName": "Task.Os.Install.CentOS"
+      }
     }
   ]
 }
