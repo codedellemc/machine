@@ -68,7 +68,7 @@ if [ $PXE_COUNT ]
 	          VBoxManage modifyvm $vmName --nic2 NAT;
             VBoxManage modifyvm $vmName --nictype2 82540EM --macaddress2 auto;
 	          VBoxManage modifyvm $vmName --natpf2 "guestssh,tcp,,2$i2$i,,22";
-	          VBoxManage modifyvm $vmName --ioapic on;
+	          VBoxManage modifyvm $vmName --ioapic off;
 	          VBoxManage modifyvm $vmName --rtcuseutc on;
         fi
       done
