@@ -16,7 +16,6 @@ This repo contains all the necessary instructions, scripts, and documentation to
    ```
    $ git clone https://github.com/RackHD/RackHD
    $ cd RackHD
-   $ git checkout d3e545a1e
    $ cd example
    ```
 
@@ -52,7 +51,7 @@ if [ $PXE_COUNT ]
             VBoxManage modifyvm $vmName --nic2 NAT;
             VBoxManage modifyvm $vmName --nictype2 82540EM --macaddress2 auto;
             VBoxManage modifyvm $vmName --natpf2 "guestssh,tcp,,2$i2$i,,22";
-            VBoxManage modifyvm $vmName --ioapic on;
+            VBoxManage modifyvm $vmName --ioapic off;
             VBoxManage modifyvm $vmName --rtcuseutc on;
         fi
       done
@@ -153,9 +152,9 @@ $ curl -H "Content-Type: application/json" -X POST --data @virtualbox_sku_centos
 13. Install Docker Client, Docker Machine and the RackHD Driver. Go back to the 2nd terminal that is SSH'd into the vagrant RackHD/monorail. The following pieces require root permission. In this version, all Docker Machine related commands require execution to be done on the RackHD server where [on-http](https://github.com/RackHD/on-http/) is being hosted because RackHD is only able to provide IP addresses for nodes that acquired addresses from RackHD's DHCP server. There is an [in-band management](https://github.com/RackHD/specs/blob/master/inband_management.md) spec for adding the capability to manage hosts via SSH outside of RackHD (or via the 2nd NIC) in a future release.
    ```
 $ sudo su
-# curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.10.3 > /usr/local/bin/docker && chmod +x /usr/local/bin/docker
-# curl -L https://github.com/docker/machine/releases/download/v0.6.0/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && chmod +x /usr/local/bin/docker-machine
-# curl -L https://github.com/emccode/docker-machine-rackhd/releases/download/v0.0.1/docker-machine-driver-rackhd.`uname -s`-`uname -m` > /usr/local/bin/docker-machine-driver-rackhd && chmod +x /usr/local/bin/docker-machine-driver-rackhd
+# curl -L https://get.docker.com/builds/Linux/x86_64/docker-1.11.0.tgz > docker-1.11.0.tgz && tar -xf docker-1.11.0.tgz && cp docker/docker /usr/local/bin/docker && chmod +x /usr/local/bin/docker
+# curl -L https://github.com/docker/machine/releases/download/v0.7.0/docker-machine-`uname -s`-`uname -m` >/usr/local/bin/docker-machine && chmod +x /usr/local/bin/docker-machine
+# curl -L https://github.com/emccode/docker-machine-rackhd/releases/download/v0.1.0/docker-machine-driver-rackhd.`uname -s`-`uname -m` > /usr/local/bin/docker-machine-driver-rackhd && chmod +x /usr/local/bin/docker-machine-driver-rackhd
    ```
 
 14. Retrieve the node ID from the PXE server(s) that was powered on in step 11. Open up the web browser and go to `http://localhost:9090/ui` to view the Node ID or go to the 3rd terminal and issue the following:
@@ -176,4 +175,4 @@ Create the new host by specifying the `--rackhd-node-id` that was gathered from 
 
 ---
 
-This driver is still in its infancy and needs more work but the bare minimum is there today for the create functionality. RackHD is experiencing heavy development and the APIs are changing by the hour. This current version relies on the [1.1 API](https://github.com/RackHD/on-http/blob/master/static/monorail.yml) but the [2.0 API](https://github.com/RackHD/on-http/blob/master/static/monorail-2.0.yaml) is around the corner. In addition, more work needs to be done to integrate the [Redfish API](https://github.com/RackHD/on-http/blob/master/static/redfish.yaml) which performs machine actions into the [gorackhd](https://github.com/emccode/gorackhd) binding. However, this is going to be put on hold until these APIs get stabilized, fleshed out, and combined.
+RackHD is experiencing heavy development and the APIs are changing by the hour. This current version relies on the [1.1 API](https://github.com/RackHD/on-http/blob/master/static/monorail.yml) but the [2.0 API](https://github.com/RackHD/on-http/blob/master/static/monorail-2.0.yaml) is around the corner. The underlying components are the API bindings for [gorackhd](https://github.com/emccode/gorackhd) and [gorackhd-redfish](https://github.com/emccode/gorackhd-redfish)
