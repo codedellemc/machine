@@ -2,7 +2,10 @@
 
 This repo contains all the necessary instructions, scripts, and documentation to use the [Docker Machine Driver for RackHD ](https://github.com/emccode/docker-machine-rackhd) with the [Vagrant Demo environment of RackHD](https://github.com/RackHD/RackHD/tree/master/example). 
 
-[![Docker Machine Driver for RackHD Vagrant Setup and Testing](http://i.imgur.com/346xWSZ.png)](https://youtu.be/7Y4-F4aCvuo "Docker Machine Driver for RackHD Vagrant Setup and Testing")
+[![Docker Machine Driver for RackHD Vagrant Setup and Testing Intro](http://i.imgur.com/346xWSZ.png)](https://www.youtube.com/watch?v=DJbNSLGOdaw "Docker Machine Driver for RackHD Vagrant Setup and Testing Intro")
+
+Part 2 - Deep Dive
+[![Docker Machine Driver for RackHD Vagrant Setup and Testing Deep-Dive](http://i.imgur.com/346xWSZ.png)](https://www.youtube.com/watch?v=MotVzBT0gsM "Docker Machine Driver for RackHD Vagrant Setup and Testing Deep-Dive")
 
 ## Requirements
 
